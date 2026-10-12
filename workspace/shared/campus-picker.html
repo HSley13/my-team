@@ -1,0 +1,218 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>What can I do between classes?</title>
+<style>
+  :root { --ink:#16343b; --muted:#526b70; --sea:#087e8b; --coral:#e76f51; --line:#cbded9; --paper:#fffdf8; --wash:#edf7f3; }
+  * { box-sizing: border-box; }
+  body { margin: 0; font-family: "Segoe UI", "Microsoft JhengHei", Arial, sans-serif; color: var(--ink); background: var(--paper); line-height: 1.5; }
+  main { max-width: 640px; margin: 0 auto; padding: 16px; }
+  header { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
+  h1 { font-size: 1.5rem; margin: 8px 0; }
+  .note { font-size: .85rem; color: var(--muted); margin: 0 0 16px; }
+  fieldset { border: 1px solid var(--line); border-radius: 10px; margin: 0 0 12px; padding: 8px 12px; }
+  legend { font-weight: 700; padding: 0 4px; }
+  label { display: inline-flex; align-items: center; gap: 4px; margin: 4px 14px 4px 0; }
+  button { font: inherit; border-radius: 8px; border: 1px solid var(--sea); background: #fff; color: var(--sea); padding: 8px 14px; cursor: pointer; }
+  button.primary { background: var(--sea); color: #fff; font-weight: 700; }
+  .row { display: flex; gap: 8px; flex-wrap: wrap; margin: 8px 0 16px; }
+  #result { border: 2px solid var(--sea); border-radius: 10px; padding: 12px; min-height: 3em; background: var(--wash); }
+  #result.none { border-color: var(--coral); background: #fdf0ec; }
+  #result b { font-size: 1.15rem; }
+  h2 { font-size: 1.1rem; margin: 20px 0 6px; }
+  ol { padding-left: 1.4em; margin: 0; }
+  li { margin: 2px 0; }
+  .empty { color: var(--muted); }
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <h1 id="t-title">What can I do between classes?</h1>
+    <button type="button" id="lang">中文</button>
+  </header>
+  <p class="note" id="t-note">Fictional teaching activities; not an official university announcement.</p>
+
+  <fieldset>
+    <legend id="t-where">Location</legend>
+    <label><input type="radio" name="where" value="all" checked> <span data-t="all">All</span></label>
+    <label><input type="radio" name="where" value="indoor"> <span data-t="indoor">Indoor</span></label>
+    <label><input type="radio" name="where" value="outdoor"> <span data-t="outdoor">Outdoor</span></label>
+  </fieldset>
+
+  <fieldset>
+    <legend id="t-time">Available time</legend>
+    <label><input type="radio" name="time" value="15"> <span data-t="m15">15 minutes</span></label>
+    <label><input type="radio" name="time" value="30" checked> <span data-t="m30">30 minutes</span></label>
+    <label><input type="radio" name="time" value="60"> <span data-t="m60">60 minutes</span></label>
+  </fieldset>
+
+  <fieldset>
+    <legend id="t-energy">Energy</legend>
+    <label><input type="radio" name="energy" value="all" checked> <span data-t="all">All</span></label>
+    <label><input type="radio" name="energy" value="low"> <span data-t="low">Low</span></label>
+    <label><input type="radio" name="energy" value="medium"> <span data-t="medium">Medium</span></label>
+  </fieldset>
+
+  <div class="row">
+    <button type="button" class="primary" id="pick">Pick for me</button>
+    <button type="button" id="reset">Reset filters</button>
+  </div>
+
+  <div id="result" aria-live="polite"><span class="empty" id="t-hint">Choose your filters, then press "Pick for me".</span></div>
+
+  <h2 id="t-history">Last 5 picks (newest first)</h2>
+  <ol id="history"></ol>
+  <p class="empty" id="no-history">No picks yet.</p>
+  <div class="row"><button type="button" id="clear">Clear history</button></div>
+</main>
+
+<script>
+(function () {
+  // The same 12 fictional activities as activities.json
+  var ACTIVITIES = [
+    { id: "A01", name_zh: "整理書包", name_en: "Organize your bag", location_type: "indoor", minutes: 10, energy: "low" },
+    { id: "A02", name_zh: "畫一張小卡", name_en: "Draw a small card", location_type: "indoor", minutes: 15, energy: "low" },
+    { id: "A03", name_zh: "寫三句讀書筆記", name_en: "Write three study notes", location_type: "indoor", minutes: 10, energy: "low" },
+    { id: "A04", name_zh: "安靜讀兩頁書", name_en: "Read two pages quietly", location_type: "indoor", minutes: 15, energy: "low" },
+    { id: "A05", name_zh: "排好明日待辦", name_en: "Plan tomorrow’s tasks", location_type: "indoor", minutes: 20, energy: "low" },
+    { id: "A06", name_zh: "整理本機練習檔", name_en: "Organize practice files", location_type: "indoor", minutes: 30, energy: "medium" },
+    { id: "A07", name_zh: "在合適位置慢走", name_en: "Take a gentle walk in a suitable area", location_type: "outdoor", minutes: 15, energy: "low" },
+    { id: "A08", name_zh: "觀察天空並畫草圖", name_en: "Observe the sky and sketch", location_type: "outdoor", minutes: 20, energy: "low" },
+    { id: "A09", name_zh: "在合適位置快走", name_en: "Take a brisk walk in a suitable area", location_type: "outdoor", minutes: 30, energy: "medium" },
+    { id: "A10", name_zh: "規劃小組練習", name_en: "Plan a group exercise", location_type: "indoor", minutes: 45, energy: "medium" },
+    { id: "A11", name_zh: "記錄自然色彩", name_en: "Record colors in nature", location_type: "outdoor", minutes: 45, energy: "low" },
+    { id: "A12", name_zh: "構思下一次社團活動", name_en: "Brainstorm a future club activity", location_type: "indoor", minutes: 60, energy: "medium" }
+  ];
+
+  var TEXT = {
+    en: {
+      title: "What can I do between classes?", lang: "中文",
+      note: "Fictional teaching activities; not an official university announcement.",
+      where: "Location", time: "Available time", energy: "Energy",
+      all: "All", indoor: "Indoor", outdoor: "Outdoor", m15: "15 minutes", m30: "30 minutes", m60: "60 minutes",
+      low: "Low", medium: "Medium",
+      pick: "Pick for me", reset: "Reset filters", clear: "Clear history",
+      hint: "Choose your filters, then press \"Pick for me\".",
+      none: "No matching activities.", history: "Last 5 picks (newest first)", noHistory: "No picks yet.",
+      min: "min"
+    },
+    zh: {
+      title: "課間我想做什麼？", lang: "English",
+      note: "虛構教學活動，不是學校正式公告。",
+      where: "地點", time: "可用時間", energy: "體力",
+      all: "全部", indoor: "室內", outdoor: "室外", m15: "15 分鐘", m30: "30 分鐘", m60: "60 分鐘",
+      low: "低", medium: "中",
+      pick: "幫我選", reset: "重設條件", clear: "清除紀錄",
+      hint: "選好條件，再按「幫我選」。",
+      none: "沒有符合條件的活動。", history: "最近 5 次（最新在上）", noHistory: "還沒有紀錄。",
+      min: "分鐘"
+    }
+  };
+
+  var lang = "en";
+  var history = [];      // successful picks only, newest first, max 5; not saved after reload
+  var last = null;       // last result: an activity, "none", or null
+
+  function $(id) { return document.getElementById(id); }
+  function value(name) { return document.querySelector('input[name="' + name + '"]:checked').value; }
+  function setValue(name, v) { document.querySelector('input[name="' + name + '"][value="' + v + '"]').checked = true; }
+
+  function describe(a) {
+    var t = TEXT[lang];
+    var name = lang === "zh" ? a.name_zh : a.name_en;
+    return a.id + " · " + name + " · " + a.minutes + " " + t.min + " · " + t[a.location_type] + " · " + t[a.energy];
+  }
+
+  function showResult() {
+    var box = $("result");
+    var t = TEXT[lang];
+    box.className = "";
+    box.textContent = "";
+    if (last === null) {
+      var s = document.createElement("span");
+      s.className = "empty";
+      s.textContent = t.hint;
+      box.appendChild(s);
+    } else if (last === "none") {
+      box.className = "none";
+      box.textContent = t.none;
+    } else {
+      var b = document.createElement("b");
+      b.textContent = describe(last);
+      box.appendChild(b);
+    }
+  }
+
+  function showHistory() {
+    var list = $("history");
+    list.textContent = "";
+    history.forEach(function (a) {
+      var li = document.createElement("li");
+      li.textContent = describe(a);
+      list.appendChild(li);
+    });
+    $("no-history").hidden = history.length > 0;
+  }
+
+  function applyLanguage() {
+    var t = TEXT[lang];
+    document.documentElement.lang = lang === "zh" ? "zh-Hant-TW" : "en";
+    document.title = t.title;
+    $("t-title").textContent = t.title;
+    $("lang").textContent = t.lang;
+    $("t-note").textContent = t.note;
+    $("t-where").textContent = t.where;
+    $("t-time").textContent = t.time;
+    $("t-energy").textContent = t.energy;
+    $("pick").textContent = t.pick;
+    $("reset").textContent = t.reset;
+    $("clear").textContent = t.clear;
+    $("t-history").textContent = t.history;
+    $("no-history").textContent = t.noHistory;
+    document.querySelectorAll("[data-t]").forEach(function (el) { el.textContent = t[el.getAttribute("data-t")]; });
+    showResult();
+    showHistory();
+  }
+
+  $("pick").addEventListener("click", function () {
+    var where = value("where"), time = Number(value("time")), energy = value("energy");
+    var matches = ACTIVITIES.filter(function (a) {
+      return (where === "all" || a.location_type === where) && a.minutes <= time && (energy === "all" || a.energy === energy);
+    });
+    if (matches.length === 0) {
+      last = "none";              // filters stay as they are; history unchanged
+    } else {
+      last = matches[Math.floor(Math.random() * matches.length)];
+      history.unshift(last);
+      if (history.length > 5) history.length = 5;
+    }
+    showResult();
+    showHistory();
+  });
+
+  $("reset").addEventListener("click", function () {
+    setValue("where", "all");
+    setValue("time", "30");
+    setValue("energy", "all");
+    last = null;
+    showResult();                 // history is kept
+  });
+
+  $("clear").addEventListener("click", function () {
+    history = [];
+    showHistory();
+  });
+
+  $("lang").addEventListener("click", function () {
+    lang = lang === "en" ? "zh" : "en";
+    applyLanguage();
+  });
+
+  applyLanguage();
+})();
+</script>
+</body>
+</html>

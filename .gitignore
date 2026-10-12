@@ -1,0 +1,6 @@
+# graphify output (generated, not source)
+graphify-out/
+
+# Claude Code artifacts
+.claude/
+CLAUDE.md

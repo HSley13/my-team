@@ -1,0 +1,27 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "autoupdate": false,
+  "share": "disabled",
+  "shell": "powershell",
+  "default_agent": "leader",
+  "agent": {
+    "leader": {
+      "description": "Leader Wailan: splits the task, writes notes into workspace/inbox, checks workspace/outbox.",
+      "mode": "primary",
+      "model": "opencode/mimo-v2.6-flash-free",
+      "prompt": "You were started as the agent named leader. At start-up, follow the section 'Which one are you?' in AGENTS.md to identify yourself, read leader.md, then follow AGENTS.md."
+    },
+    "member": {
+      "description": "Member Taroko: reads the newest note in workspace/inbox, does the work, saves it in workspace/outbox.",
+      "mode": "primary",
+      "model": "opencode/mimo-v2.6-flash-free",
+      "prompt": "You were started as the agent named member. At start-up, follow the section 'Which one are you?' in AGENTS.md to identify yourself, read member.md, then follow AGENTS.md."
+    },
+    "build": {
+      "disable": true
+    },
+    "plan": {
+      "disable": true
+    }
+  }
+}
